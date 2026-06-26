@@ -153,7 +153,7 @@ Authorization: Bearer <access_token>
 | `body` | string | 必須 | 思い出本文 |
 | `emotion` | string | 任意 | `happy`, `fun`, `neutral`, `sad`, `angry` など |
 | `tags` | string[] | 任意 | タグ配列 |
-| `visibility` | string | 必須 | `private`, `mutual_followers` |
+| `visibility` | string | 必須 | `private`, `mutual_followers`。ユーザーが選択する |
 | `media` | file[] | 任意 | 写真、動画、音声 |
 
 メディアファイルの上限は以下とする。
@@ -163,6 +163,14 @@ Authorization: Bearer <access_token>
 | 画像 | 10MB |
 | 音声 | 50MB |
 | 動画 | 200MB |
+
+対応ファイル形式は以下とする。
+
+| 種別 | 形式 |
+| --- | --- |
+| 画像 | `jpg`, `png`, `webp`, `heic` |
+| 音声 | `mp3`, `m4a`, `wav` |
+| 動画 | `mp4`, `mov`, `webm` |
 
 レスポンス: `201 Created`
 
@@ -252,6 +260,8 @@ AI検索・要約の対象は自分の投稿のみとする。検索・要約で
 
 ユーザーの投稿本文やメディアを Gemini API に送信する可能性があることを、ユーザーに明示する。AI要約結果はDBに保存し、AI検索結果は保存せずに都度生成する。
 
+Gemini APIが失敗した場合でも通常の投稿保存は成功扱いとし、AI要約のみ失敗扱いにする。MVPでは独自のレート制限は設けない。
+
 #### POST /v1/search
 
 リクエスト:
@@ -321,7 +331,6 @@ export.zip
 | 404 | 対象リソースなし |
 | 409 | 一意制約違反などの競合 |
 | 422 | バリデーションエラー |
-| 429 | レート制限 |
 | 500 | サーバー内部エラー |
 
 ## バージョニング方針
