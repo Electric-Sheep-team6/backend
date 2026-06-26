@@ -240,7 +240,7 @@ Authorization: Bearer <access_token>
 | POST | `/v1/search` | 必要 | 自分の投稿を自然文で検索 |
 | POST | `/v1/memories/{memory_id}/summary` | 必要 | 投稿の要約を生成 |
 
-AI検索・要約の対象は自分の投稿のみとする。検索・要約では本文、タグ、感情、写真、動画、音声を入力候補に含める。共有された投稿は対象外とする。
+AI検索・要約の対象は自分の投稿のみとする。検索・要約では本文、タグ、感情、写真、動画、音声を入力候補に含める。共有された投稿は対象外とする。生成AIプロバイダはMVPでは Gemini API とし、モデルは Gemini 2.5 Flash を第一候補とする。
 
 #### POST /v1/search
 
