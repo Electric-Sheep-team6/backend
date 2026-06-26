@@ -107,6 +107,9 @@ MVPでは Worker を分離せず API Server 内で同期処理してもよい。
 ## 認証・認可方針
 
 - 認証必須APIでは `Authorization: Bearer <access_token>` を利用する。
+- ログイン成功時に `access_token` と `refresh_token` を発行する。
+- `access_token` は短期有効とし、期限切れ時は `/v1/auth/refresh` で再発行する。
+- `refresh_token` はDBにハッシュ化して保存し、ログアウト時に失効させる。
 - 自分の投稿は本人のみ閲覧できる。
 - `visibility = mutual_followers` の投稿は相互フォロー関係があるユーザーのみ閲覧できる。
 - `visibility = private` の投稿は本人のみ閲覧できる。
