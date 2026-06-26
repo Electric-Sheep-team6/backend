@@ -224,17 +224,23 @@ Authorization: Bearer <access_token>
 
 | メソッド | パス | 認証 | 概要 |
 | --- | --- | --- | --- |
-| POST | `/v1/follows/{user_id}` | 必要 | フォロー申請またはフォロー |
+| POST | `/v1/follows/{user_id}` | 必要 | フォロー申請 |
+| POST | `/v1/follows/{user_id}/accept` | 必要 | フォロー申請承認 |
+| POST | `/v1/follows/{user_id}/reject` | 必要 | フォロー申請拒否 |
 | DELETE | `/v1/follows/{user_id}` | 必要 | フォロー解除 |
 | GET | `/v1/follows` | 必要 | フォロー一覧を取得 |
 | GET | `/v1/shared-memories` | 必要 | 相互フォロワーから共有された投稿を取得 |
+
+フォローは申請制とする。`visibility = mutual_followers` の投稿は、双方のフォロー関係が承認済みの場合のみ閲覧できる。
 
 ### Search / AI
 
 | メソッド | パス | 認証 | 概要 |
 | --- | --- | --- | --- |
-| POST | `/v1/search` | 必要 | 自然文で投稿を検索 |
+| POST | `/v1/search` | 必要 | 自分の投稿を自然文で検索 |
 | POST | `/v1/memories/{memory_id}/summary` | 必要 | 投稿の要約を生成 |
+
+AI検索・要約の対象は自分の投稿のみとする。検索・要約では本文、タグ、感情、写真、動画、音声を入力候補に含める。共有された投稿は対象外とする。
 
 #### POST /v1/search
 
@@ -271,7 +277,7 @@ Authorization: Bearer <access_token>
 | POST | `/v1/exports` | 必要 | 投稿データとメディアを含むエクスポートを作成 |
 | GET | `/v1/exports/{export_id}` | 必要 | エクスポート状態とダウンロードURLを取得 |
 
-エクスポート形式はZIPとし、以下の構成を基本とする。
+エクスポート対象は自分の投稿のみとし、共有された他ユーザーの投稿は含めない。エクスポート形式はZIPとし、以下の構成を基本とする。
 
 ```text
 export.zip
@@ -282,6 +288,15 @@ export.zip
 ```
 
 `manifest.json` には投稿本文、タグ、感情、公開範囲、メディアの相対パス、MIMEタイプ、ファイルサイズ、チェックサムを含める。外部ストレージの公開URLには依存せず、ZIP単体で別媒体へ移行できる状態にする。
+
+### Notifications
+
+| メソッド | パス | 認証 | 概要 |
+| --- | --- | --- | --- |
+| GET | `/v1/notifications` | 必要 | アプリ内通知一覧を取得 |
+| POST | `/v1/notifications/{notification_id}/read` | 必要 | 通知を既読にする |
+
+通知方式はMVPではアプリ内通知のみとする。メール通知とPush通知は提供しない。
 
 ## ステータスコード
 

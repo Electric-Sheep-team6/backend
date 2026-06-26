@@ -21,6 +21,7 @@ erDiagram
   tags ||--o{ memory_tags : used_by
   users ||--o{ refresh_tokens : owns
   users ||--o{ export_jobs : requests
+  users ||--o{ notifications : receives
 
   users {
     uuid id PK
@@ -94,6 +95,17 @@ erDiagram
     text error_message
     timestamptz created_at
     timestamptz completed_at
+  }
+
+  notifications {
+    uuid id PK
+    uuid user_id FK
+    string notification_type
+    string title
+    text body
+    jsonb payload
+    timestamptz read_at
+    timestamptz created_at
   }
 ```
 
@@ -181,29 +193,44 @@ erDiagram
 
 ### follows
 
-ユーザー間のフォロー関係を保持する。相互フォロー判定は `follower_id -> followee_id` と `followee_id -> follower_id` の両方が存在するかで判定する。
+ユーザー間のフォロー関係を保持する。フォローは申請制とし、承認後に `active` とする。相互フォロー判定は `follower_id -> followee_id` と `followee_id -> follower_id` の両方が `active` で存在するかで判定する。
 
 | カラム | 型 | 制約 | 説明 |
 | --- | --- | --- | --- |
 | `id` | uuid | PK | フォローID |
 | `follower_id` | uuid | FK, not null | フォローするユーザー |
 | `followee_id` | uuid | FK, not null | フォローされるユーザー |
-| `status` | varchar(20) | not null | `active`, `blocked` |
+| `status` | varchar(20) | not null | `pending`, `active`, `rejected`, `blocked` |
 | `created_at` | timestamptz | not null | 作成日時 |
 
 ### export_jobs
 
-JSONエクスポートの作成状態を保持する。
+自分の投稿データとメディアファイルを含むZIPエクスポートの作成状態を保持する。共有された他ユーザーの投稿はエクスポート対象外とする。
 
 | カラム | 型 | 制約 | 説明 |
 | --- | --- | --- | --- |
 | `id` | uuid | PK | エクスポートID |
 | `user_id` | uuid | FK, not null | 依頼ユーザーID |
 | `status` | varchar(20) | not null | `queued`, `processing`, `completed`, `failed` |
-| `storage_key` | varchar(500) | nullable | 完成したJSONファイルの保存先 |
+| `storage_key` | varchar(500) | nullable | 完成したZIPファイルの保存先 |
 | `error_message` | text | nullable | 失敗理由 |
 | `created_at` | timestamptz | not null | 作成日時 |
 | `completed_at` | timestamptz | nullable | 完了日時 |
+
+### notifications
+
+アプリ内通知を保持する。MVPではメール通知、Push通知は扱わない。
+
+| カラム | 型 | 制約 | 説明 |
+| --- | --- | --- | --- |
+| `id` | uuid | PK | 通知ID |
+| `user_id` | uuid | FK, not null | 通知対象ユーザーID |
+| `notification_type` | varchar(50) | not null | `one_year_ago`, `random_memory`, `follow_request` など |
+| `title` | varchar(200) | not null | 通知タイトル |
+| `body` | text | not null | 通知本文 |
+| `payload` | jsonb | not null default '{}' | 関連する投稿IDなどの追加情報 |
+| `read_at` | timestamptz | nullable | 既読日時 |
+| `created_at` | timestamptz | not null | 作成日時 |
 
 ## 値定義
 
@@ -237,6 +264,8 @@ JSONエクスポートの作成状態を保持する。
 - `memory_media(checksum_sha256)` にインデックスを設定する。
 - `refresh_tokens(user_id, expires_at)` にインデックスを設定する。
 - `export_jobs(user_id, created_at desc)` にインデックスを設定する。
+- `notifications(user_id, created_at desc)` にインデックスを設定する。
+- `notifications(user_id, read_at)` にインデックスを設定する。
 
 ## 削除方針
 
