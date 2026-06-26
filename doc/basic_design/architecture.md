@@ -8,7 +8,7 @@
 graph LR
   Web[Web / Mobile Client] -->|HTTPS JSON| API[Go Gin API Server]
   API -->|SQL| DB[(Neon PostgreSQL)]
-  API -->|File Upload / Read| Storage[(Object Storage)]
+  API -->|S3 Compatible API| Storage[(Cloudflare R2)]
   API -->|Token Issue / Verify| Auth[Auth Module]
   API -->|Job Request| Worker[Background Worker]
   Worker -->|SQL| DB
@@ -31,7 +31,7 @@ graph LR
 | API Server | 認証、投稿、閲覧、メディア、共有、統計のREST APIを提供する。 |
 | Auth Module | パスワードハッシュ化、ログイン検証、JWT発行、認証ミドルウェアを担当する。 |
 | Neon PostgreSQL | ユーザー、投稿、タグ、感情、公開範囲、フォロー関係などの永続化を行う。 |
-| Object Storage | 写真、動画、音声などのバイナリファイルを保存する。DBには公開URLではなく保存先キーとメタデータを保存する。 |
+| Cloudflare R2 | 写真、動画、音声などのバイナリファイルを保存する。S3互換APIで操作し、DBには公開URLではなく保存先キーとメタデータを保存する。 |
 | Background Worker | AI検索・要約、通知、エクスポートなど時間がかかる処理を実行する。 |
 | Generative AI API | 自然文検索、投稿要約、思い出の抽出に利用する。 |
 | Notification Service | 過去投稿のリマインド通知を送信する。 |
@@ -72,7 +72,7 @@ sequenceDiagram
 sequenceDiagram
   participant C as Client
   participant A as API Server
-  participant S as Object Storage
+  participant S as Cloudflare R2
   participant D as Neon PostgreSQL
 
   C->>A: POST /v1/memories
@@ -91,7 +91,7 @@ sequenceDiagram
   participant A as API Server
   participant W as Worker
   participant D as Neon PostgreSQL
-  participant S as Object Storage
+  participant S as Cloudflare R2
 
   C->>A: POST /v1/exports
   A->>W: エクスポートジョブ作成
@@ -143,5 +143,9 @@ MVPでは Worker を分離せず API Server 内で同期処理してもよい。
 | `PORT` | APIサーバーの待受ポート |
 | `DATABASE_URL` | Neon PostgreSQL の接続文字列 |
 | `JWT_SECRET` | JWT署名秘密鍵 |
-| `STORAGE_BUCKET` | メディア保存先バケット |
+| `R2_ACCOUNT_ID` | Cloudflare R2 のアカウントID |
+| `R2_ACCESS_KEY_ID` | R2操作用アクセスキー |
+| `R2_SECRET_ACCESS_KEY` | R2操作用シークレットキー |
+| `R2_BUCKET` | メディア保存先バケット |
+| `R2_ENDPOINT` | S3互換APIのエンドポイント |
 | `AI_API_KEY` | 生成AI APIキー |
