@@ -22,6 +22,7 @@ erDiagram
   users ||--o{ refresh_tokens : owns
   users ||--o{ export_jobs : requests
   users ||--o{ notifications : receives
+  memories ||--o{ memory_ai_summaries : summarized_by
 
   users {
     uuid id PK
@@ -29,6 +30,7 @@ erDiagram
     string email
     string password_hash
     string role
+    timestamptz ai_usage_consent_at
     timestamptz created_at
     timestamptz updated_at
   }
@@ -107,6 +109,16 @@ erDiagram
     timestamptz read_at
     timestamptz created_at
   }
+
+  memory_ai_summaries {
+    uuid id PK
+    uuid memory_id FK
+    string provider
+    string model
+    text summary
+    timestamptz generated_at
+    timestamptz created_at
+  }
 ```
 
 ## テーブル定義
@@ -122,6 +134,7 @@ erDiagram
 | `email` | varchar(255) | not null, unique | メールアドレス |
 | `password_hash` | varchar(255) | not null | パスワードハッシュ |
 | `role` | varchar(20) | not null | `user`, `admin` |
+| `ai_usage_consent_at` | timestamptz | nullable | AI利用明示への同意日時 |
 | `created_at` | timestamptz | not null | 作成日時 |
 | `updated_at` | timestamptz | not null | 更新日時 |
 
@@ -232,6 +245,20 @@ erDiagram
 | `read_at` | timestamptz | nullable | 既読日時 |
 | `created_at` | timestamptz | not null | 作成日時 |
 
+### memory_ai_summaries
+
+投稿ごとのAI要約結果を保持する。AI検索結果は保存しない。
+
+| カラム | 型 | 制約 | 説明 |
+| --- | --- | --- | --- |
+| `id` | uuid | PK | AI要約ID |
+| `memory_id` | uuid | FK, not null | 投稿ID |
+| `provider` | varchar(50) | not null | `gemini` など |
+| `model` | varchar(100) | not null | `gemini-2.5-flash` など |
+| `summary` | text | not null | 生成された要約本文 |
+| `generated_at` | timestamptz | not null | 要約生成日時 |
+| `created_at` | timestamptz | not null | 作成日時 |
+
 ## 値定義
 
 ### memories.visibility
@@ -262,6 +289,7 @@ erDiagram
 - `memories(user_id, emotion)` にインデックスを設定する。
 - `memory_tags(tag_id, memory_id)` にインデックスを設定する。
 - `memory_media(checksum_sha256)` にインデックスを設定する。
+- `memory_ai_summaries(memory_id, generated_at desc)` にインデックスを設定する。
 - `refresh_tokens(user_id, expires_at)` にインデックスを設定する。
 - `export_jobs(user_id, created_at desc)` にインデックスを設定する。
 - `notifications(user_id, created_at desc)` にインデックスを設定する。
@@ -277,6 +305,6 @@ erDiagram
 
 - マイグレーションツールは `golang-migrate` を候補とする。
 - マイグレーションファイルは `migrations/` 配下でバージョン管理する。
-- 本番適用前にステージング環境で適用確認を行う。
+- 本番適用前に development 環境で適用確認を行う。
 - 破壊的変更は原則として段階的に行い、既存データを保持する。
 - 初期開発中でも、DBスキーマ変更はマイグレーションとして残す。

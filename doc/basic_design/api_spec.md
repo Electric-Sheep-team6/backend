@@ -156,6 +156,14 @@ Authorization: Bearer <access_token>
 | `visibility` | string | 必須 | `private`, `mutual_followers` |
 | `media` | file[] | 任意 | 写真、動画、音声 |
 
+メディアファイルの上限は以下とする。
+
+| 種別 | 上限 |
+| --- | --- |
+| 画像 | 10MB |
+| 音声 | 50MB |
+| 動画 | 200MB |
+
 レスポンス: `201 Created`
 
 ```json
@@ -241,6 +249,8 @@ Authorization: Bearer <access_token>
 | POST | `/v1/memories/{memory_id}/summary` | 必要 | 投稿の要約を生成 |
 
 AI検索・要約の対象は自分の投稿のみとする。検索・要約では本文、タグ、感情、写真、動画、音声を入力候補に含める。共有された投稿は対象外とする。生成AIプロバイダはMVPでは Gemini API とし、モデルは Gemini 2.5 Flash を第一候補とする。
+
+ユーザーの投稿本文やメディアを Gemini API に送信する可能性があることを、ユーザーに明示する。AI要約結果はDBに保存し、AI検索結果は保存せずに都度生成する。
 
 #### POST /v1/search
 
