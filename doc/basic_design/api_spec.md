@@ -82,6 +82,8 @@ Authorization: Bearer <access_token>
 | POST | `/v1/auth/refresh` | 不要 | アクセストークン再発行 |
 | GET | `/v1/me` | 必要 | 自分のユーザー情報取得 |
 
+パスワードリセットは初期MVPでは提供しない。
+
 #### POST /v1/auth/register
 
 リクエスト:

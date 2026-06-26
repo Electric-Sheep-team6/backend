@@ -125,6 +125,15 @@ sequenceDiagram
 
 MVPでは Worker を分離せず API Server 内で同期処理してもよい。ただし、AI処理は通常APIと分け、タイムアウトやレート制限を個別に管理する。
 
+## CORS方針
+
+CORSの許可オリジンはフロントエンドのデプロイ先が決まり次第確定する。暫定方針は以下とする。
+
+- 開発環境ではフロントエンド開発サーバーのlocalhostのみ許可する。
+- 本番環境では確定したフロントエンドドメインのみ許可する。
+- `*` による全許可は行わない。
+- 許可オリジンは環境変数で管理する。
+
 ## 認証・認可方針
 
 - 認証必須APIでは `Authorization: Bearer <access_token>` を利用する。
@@ -149,3 +158,4 @@ MVPでは Worker を分離せず API Server 内で同期処理してもよい。
 | `R2_BUCKET` | メディア保存先バケット |
 | `R2_ENDPOINT` | S3互換APIのエンドポイント |
 | `AI_API_KEY` | 生成AI APIキー |
+| `CORS_ALLOWED_ORIGINS` | CORSで許可するオリジンのカンマ区切り一覧 |
