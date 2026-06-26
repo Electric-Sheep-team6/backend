@@ -31,7 +31,7 @@ graph LR
 | API Server | 認証、投稿、閲覧、メディア、共有、統計のREST APIを提供する。 |
 | Auth Module | パスワードハッシュ化、ログイン検証、JWT発行、認証ミドルウェアを担当する。 |
 | Neon PostgreSQL | ユーザー、投稿、タグ、感情、公開範囲、フォロー関係などの永続化を行う。 |
-| Object Storage | 写真、動画、音声などのバイナリファイルを保存する。 |
+| Object Storage | 写真、動画、音声などのバイナリファイルを保存する。DBには公開URLではなく保存先キーとメタデータを保存する。 |
 | Background Worker | AI検索・要約、通知、エクスポートなど時間がかかる処理を実行する。 |
 | Generative AI API | 自然文検索、投稿要約、思い出の抽出に利用する。 |
 | Notification Service | 過去投稿のリマインド通知を送信する。 |
@@ -82,6 +82,27 @@ sequenceDiagram
   A->>D: memories / memory_media / tags 保存
   A-->>C: 作成された投稿
 ```
+
+### データエクスポート
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant A as API Server
+  participant W as Worker
+  participant D as Neon PostgreSQL
+  participant S as Object Storage
+
+  C->>A: POST /v1/exports
+  A->>W: エクスポートジョブ作成
+  W->>D: 投稿・タグ・メディアメタデータ取得
+  W->>S: メディアファイル取得
+  W->>W: manifest.json と media/ をZIP化
+  W->>S: ZIP保存
+  A-->>C: export_id
+```
+
+エクスポートZIPには、投稿・タグ・メディアメタデータを含む `manifest.json` と、実ファイルを配置する `media/` ディレクトリを含める。`manifest.json` にはアプリ内のメディアID、投稿ID、相対ファイルパス、MIMEタイプ、ファイルサイズ、チェックサムを含め、別の保存先へ移行しても投稿とメディアの紐づけを復元できるようにする。
 
 ### AI検索・要約
 

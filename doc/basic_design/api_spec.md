@@ -266,8 +266,20 @@ Authorization: Bearer <access_token>
 
 | メソッド | パス | 認証 | 概要 |
 | --- | --- | --- | --- |
-| POST | `/v1/exports` | 必要 | JSONエクスポートを作成 |
+| POST | `/v1/exports` | 必要 | 投稿データとメディアを含むエクスポートを作成 |
 | GET | `/v1/exports/{export_id}` | 必要 | エクスポート状態とダウンロードURLを取得 |
+
+エクスポート形式はZIPとし、以下の構成を基本とする。
+
+```text
+export.zip
+  manifest.json
+  media/
+    <memory_id>/
+      <media_id>.<extension>
+```
+
+`manifest.json` には投稿本文、タグ、感情、公開範囲、メディアの相対パス、MIMEタイプ、ファイルサイズ、チェックサムを含める。外部ストレージの公開URLには依存せず、ZIP単体で別媒体へ移行できる状態にする。
 
 ## ステータスコード
 

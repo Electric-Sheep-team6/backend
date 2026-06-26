@@ -6,7 +6,9 @@ DB は Neon PostgreSQL を利用する。ユーザーの記憶データを長期
 
 Neon は PostgreSQL 互換のマネージドDBとして利用する。DBブランチ機能は開発・検証環境の分離に活用できるが、アプリケーションのスキーマ設計は標準的な PostgreSQL 機能を中心に行い、将来的に RDS や Cloud SQL などへ移行しやすい状態を保つ。
 
-メディアファイル本体はDBに保存せず、オブジェクトストレージに保存する。DBには保存先キー、ファイル種別、メタデータのみを保持する。
+メディアファイル本体はDBに保存せず、オブジェクトストレージに保存する。DBには保存先キー、元ファイル名、ファイル種別、MIMEタイプ、ファイルサイズ、チェックサム、メタデータを保持する。
+
+移行性を確保するため、DB上のメディア参照は外部公開URLに依存しない。閲覧時のURLは必要に応じて一時的に生成し、永続データとしては保存しない。データエクスポート時は、投稿JSONとメディアファイル本体を同じZIPに含める。
 
 ## エンティティ一覧
 
@@ -47,8 +49,10 @@ erDiagram
     uuid memory_id FK
     string media_type
     string storage_key
+    string original_filename
     string mime_type
     bigint file_size
+    string checksum_sha256
     jsonb metadata
     timestamptz created_at
   }
@@ -148,8 +152,10 @@ erDiagram
 | `memory_id` | uuid | FK, not null | 投稿ID |
 | `media_type` | varchar(20) | not null | `image`, `video`, `audio` |
 | `storage_key` | varchar(500) | not null | オブジェクトストレージ上のキー |
+| `original_filename` | varchar(255) | nullable | アップロード時の元ファイル名 |
 | `mime_type` | varchar(100) | not null | MIMEタイプ |
 | `file_size` | bigint | not null | ファイルサイズ |
+| `checksum_sha256` | char(64) | not null | ファイル内容のSHA-256チェックサム |
 | `metadata` | jsonb | not null default '{}' | 幅、高さ、再生時間など |
 | `created_at` | timestamptz | not null | 作成日時 |
 
@@ -228,6 +234,7 @@ JSONエクスポートの作成状態を保持する。
 - `memories(user_id, occurred_at desc)` にインデックスを設定する。
 - `memories(user_id, emotion)` にインデックスを設定する。
 - `memory_tags(tag_id, memory_id)` にインデックスを設定する。
+- `memory_media(checksum_sha256)` にインデックスを設定する。
 - `refresh_tokens(user_id, expires_at)` にインデックスを設定する。
 - `export_jobs(user_id, created_at desc)` にインデックスを設定する。
 
