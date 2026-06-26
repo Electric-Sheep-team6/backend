@@ -2,7 +2,9 @@
 
 ## 概要
 
-DB は PostgreSQL を想定する。ユーザーの記憶データを長期保存するため、主キーは UUID、日時は timezone 付きの `timestamptz` を基本とする。
+DB は Neon PostgreSQL を利用する。ユーザーの記憶データを長期保存するため、主キーは UUID、日時は timezone 付きの `timestamptz` を基本とする。
+
+Neon は PostgreSQL 互換のマネージドDBとして利用する。DBブランチ機能は開発・検証環境の分離に活用できるが、アプリケーションのスキーマ設計は標準的な PostgreSQL 機能を中心に行い、将来的に RDS や Cloud SQL などへ移行しやすい状態を保つ。
 
 メディアファイル本体はDBに保存せず、オブジェクトストレージに保存する。DBには保存先キー、ファイル種別、メタデータのみを保持する。
 

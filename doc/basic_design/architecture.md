@@ -7,7 +7,7 @@
 ```mermaid
 graph LR
   Web[Web / Mobile Client] -->|HTTPS JSON| API[Go Gin API Server]
-  API -->|SQL| DB[(PostgreSQL)]
+  API -->|SQL| DB[(Neon PostgreSQL)]
   API -->|File Upload / Read| Storage[(Object Storage)]
   API -->|Token Issue / Verify| Auth[Auth Module]
   API -->|Job Request| Worker[Background Worker]
@@ -30,7 +30,7 @@ graph LR
 | Web / Mobile Client | 投稿作成、閲覧、ログイン、検索などの画面を提供する。 |
 | API Server | 認証、投稿、閲覧、メディア、共有、統計のREST APIを提供する。 |
 | Auth Module | パスワードハッシュ化、ログイン検証、JWT発行、認証ミドルウェアを担当する。 |
-| PostgreSQL | ユーザー、投稿、タグ、感情、公開範囲、フォロー関係などの永続化を行う。 |
+| Neon PostgreSQL | ユーザー、投稿、タグ、感情、公開範囲、フォロー関係などの永続化を行う。 |
 | Object Storage | 写真、動画、音声などのバイナリファイルを保存する。 |
 | Background Worker | AI検索・要約、通知、エクスポートなど時間がかかる処理を実行する。 |
 | Generative AI API | 自然文検索、投稿要約、思い出の抽出に利用する。 |
@@ -57,7 +57,7 @@ config     環境変数、外部サービス設定
 sequenceDiagram
   participant C as Client
   participant A as API Server
-  participant D as PostgreSQL
+  participant D as Neon PostgreSQL
 
   C->>A: POST /v1/auth/login
   A->>D: email でユーザー取得
@@ -73,7 +73,7 @@ sequenceDiagram
   participant C as Client
   participant A as API Server
   participant S as Object Storage
-  participant D as PostgreSQL
+  participant D as Neon PostgreSQL
 
   C->>A: POST /v1/memories
   A->>A: JWT検証、入力検証
@@ -91,7 +91,7 @@ sequenceDiagram
   participant A as API Server
   participant W as Worker
   participant AI as Generative AI API
-  participant D as PostgreSQL
+  participant D as Neon PostgreSQL
 
   C->>A: POST /v1/search
   A->>W: 検索/要約ジョブ依頼
@@ -117,7 +117,7 @@ MVPでは Worker を分離せず API Server 内で同期処理してもよい。
 | 変数名 | 用途 |
 | --- | --- |
 | `PORT` | APIサーバーの待受ポート |
-| `DATABASE_URL` | PostgreSQL接続文字列 |
+| `DATABASE_URL` | Neon PostgreSQL の接続文字列 |
 | `JWT_SECRET` | JWT署名秘密鍵 |
 | `STORAGE_BUCKET` | メディア保存先バケット |
 | `AI_API_KEY` | 生成AI APIキー |
